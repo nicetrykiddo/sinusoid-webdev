@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import {
   Sparkles,
   Moon,
@@ -9,10 +9,12 @@ import {
   AlertTriangle,
   RefreshCw,
   Code,
-  Cpu, // Add this import
-  Binary, // Add this import
+  Cpu,
+  Binary,
+  X,
 } from "lucide-react";
-import CorruptedSeedPuzzle from "./CorruptedSeedPuzzle";
+// Lazy load the puzzle component to improve initial load time
+const CorruptedSeedPuzzle = lazy(() => import("./CorruptedSeedPuzzle"));
 
 function App() {
   const [scrollY, setScrollY] = useState(0);
@@ -24,54 +26,96 @@ function App() {
   const [isPuzzleComplete, setIsPuzzleComplete] = useState(false);
   const morningVideoRef = useRef<HTMLVideoElement>(null);
   const nightVideoRef = useRef<HTMLVideoElement>(null);
+  const [throttle, setThrottle] = useState(false);
+  const [hasPassedFeatureSection, setHasPassedFeatureSection] = useState(false);
+  const featuresRef = useRef<HTMLDivElement>(null);
+
+  // Initialize with a scroll check to ensure elements are visible on page load
+  useEffect(() => {
+    const checkInitialScroll = () => {
+      const scrollPos = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      const percentScrolled = (scrollPos / (documentHeight - windowHeight)) * 100;
+      setScrollProgress(percentScrolled);
+      setIsDark(percentScrolled > 30);
+      setShowPlotTwist(percentScrolled > 90);
+      setScrollY(scrollPos);
+
+      // Check if features section is in view on initial load
+      if (featuresRef.current) {
+        const featureRect = featuresRef.current.getBoundingClientRect();
+        const featureInView = featureRect.top < windowHeight && featureRect.bottom > 0;
+        if (featureInView || scrollPos > 500) {
+          setHasPassedFeatureSection(true);
+        }
+      }
+
+      document.documentElement.style.setProperty(
+        "--scroll-progress",
+        `${percentScrolled}%`
+      );
+
+      setIsLoaded(true);
+    };
+
+    checkInitialScroll();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
+      if (throttle) return;
+
+      setThrottle(true);
+
+      setTimeout(() => setThrottle(false), 50);
+
       const darkThresholdPercent = 30;
       const plotTwistThresholdPercent = 90;
-      const puzzleThresholdPercent = 95;
       const percentScrolled =
         (window.scrollY /
           (document.documentElement.scrollHeight - window.innerHeight)) *
         100;
       setScrollProgress(percentScrolled);
       setIsDark(percentScrolled > darkThresholdPercent);
-
-      // Changed from glitching to a smooth reveal
-      setIsGlitching(false);
       setShowPlotTwist(percentScrolled > plotTwistThresholdPercent);
-      setShowPuzzle(percentScrolled > puzzleThresholdPercent);
       setScrollY(window.scrollY);
 
-      // Set dynamic background position based on scroll
+      // Check if we've scrolled to the features section
+      if (featuresRef.current) {
+        const featureRect = featuresRef.current.getBoundingClientRect();
+        const featureInView = featureRect.top < window.innerHeight && featureRect.bottom > 0;
+        if (featureInView || window.scrollY > 500) {
+          setHasPassedFeatureSection(true);
+        }
+      }
+
       document.documentElement.style.setProperty(
         "--scroll-progress",
         `${percentScrolled}%`
       );
     };
 
-    window.addEventListener("scroll", handleScroll);
-    setIsLoaded(true);
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [throttle]);
 
-  // Get opacity values based on scroll position for smoother transition
   const getMorningOpacity = () => {
     if (scrollProgress < 25) return 1;
     if (scrollProgress > 35) return 0;
-    return 1 - (scrollProgress - 25) / 10; // Fade out between 25-35% scroll
+    return 1 - (scrollProgress - 25) / 10;
   };
 
   const getNightOpacity = () => {
     if (scrollProgress < 25) return 0;
     if (scrollProgress > 35) return 1;
-    return (scrollProgress - 25) / 10; // Fade in between 25-35% scroll
+    return (scrollProgress - 25) / 10;
   };
 
-  // Random code snippets for the glitch effect
   const codeSnippets = [
     "function initSimulation() { return new Promise(() => {}); }",
     "class Empyrea extends VirtualEnvironment { constructor() { super(); }}",
@@ -80,6 +124,22 @@ function App() {
     "if (user.awareness > thresholdValue) triggerReveal();",
     "const magicEffect = new Proxy(techEffect, { get: function() {} });",
   ];
+
+  const openPuzzleModal = () => {
+    setShowPuzzle(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closePuzzleModal = () => {
+    setShowPuzzle(false);
+    document.body.style.overflow = "auto";
+  };
+
+  const handlePuzzleComplete = () => {
+    setIsPuzzleComplete(true);
+    setShowPuzzle(false);
+    document.body.style.overflow = "auto";
+  };
 
   return (
     <div
@@ -101,7 +161,6 @@ function App() {
           <source src="../assets/morning.mp4" type="video/mp4" />
         </video>
 
-        {/* Night video */}
         <video
           ref={nightVideoRef}
           autoPlay
@@ -114,7 +173,6 @@ function App() {
           <source src="../assets/night.mp4" type="video/mp4" />
         </video>
 
-        {/* Overlay gradient for better text contrast */}
         <div
           className="absolute inset-0 transition-all duration-1000"
           style={{
@@ -138,7 +196,6 @@ function App() {
 
       {/* Animated Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-10">
-        {/* Sun/Moon */}
         <div
           className="absolute transition-all duration-1000"
           style={{
@@ -173,7 +230,6 @@ function App() {
           />
         </div>
 
-        {/* Clouds with transition */}
         <div className="absolute inset-0">
           {[...Array(6)].map((_, i) => (
             <Cloud
@@ -195,7 +251,6 @@ function App() {
           ))}
         </div>
 
-        {/* Mountains */}
         <div className="absolute bottom-0 w-full">
           {[...Array(3)].map((_, i) => (
             <Mountain
@@ -215,7 +270,6 @@ function App() {
           ))}
         </div>
 
-        {/* Trees */}
         <div className="absolute bottom-0 w-full">
           {[...Array(8)].map((_, i) => (
             <Tree
@@ -235,7 +289,6 @@ function App() {
           ))}
         </div>
 
-        {/* Stars with enhanced transition */}
         <div className="absolute inset-0">
           {[...Array(50)].map((_, i) => (
             <Sparkles
@@ -255,9 +308,7 @@ function App() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="relative z-20">
-        {/* Navigation */}
         <nav
           className="fixed top-0 left-0 right-0 bg-black/30 backdrop-blur-md border-b border-blue-500/20 py-4 px-6 flex justify-between items-center"
           style={{
@@ -268,7 +319,6 @@ function App() {
             zIndex: 50,
           }}
         >
-          {/* Dynamic venom tendrils on navbar when in dark mode */}
           {isDark && scrollProgress > 40 && scrollProgress < 85 && (
             <>
               {[...Array(5)].map((_, i) => (
@@ -343,7 +393,6 @@ function App() {
           </button>
         </nav>
 
-        {/* Floating Stats */}
         <div
           className="fixed bottom-8 right-8 bg-black/30 backdrop-blur-md p-4 rounded-lg border border-blue-500/20 flex gap-6 text-xs md:text-sm"
           style={{
@@ -374,7 +423,6 @@ function App() {
           </div>
         </div>
 
-        {/* Hero Section */}
         <section className="min-h-screen flex items-center justify-center">
           <div
             className="text-center transform transition-all duration-1000"
@@ -407,8 +455,7 @@ function App() {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="relative py-32 backdrop-blur-sm bg-white/5">
+        <section className="relative py-32 backdrop-blur-sm bg-white/5" ref={featuresRef}>
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-32">
@@ -449,11 +496,10 @@ function App() {
                         ? "rgba(59, 130, 246, 0.2)"
                         : "rgba(22, 101, 52, 0.2)",
                       borderWidth: "1px",
-                      transform:
-                        scrollY > 500
-                          ? `translateY(0) scale(1)`
-                          : `translateY(${50 + i * 20}px) scale(0.95)`,
-                      opacity: scrollY > 500 ? 1 : 0,
+                      transform: hasPassedFeatureSection
+                        ? "translateY(0) scale(1)"
+                        : `translateY(${50 + i * 20}px) scale(0.95)`,
+                      opacity: hasPassedFeatureSection ? 1 : 0,
                       transitionDelay: `${i * 150}ms`,
                       boxShadow: isDark
                         ? "0 4px 20px rgba(10, 10, 40, 0.3)"
@@ -507,7 +553,6 @@ function App() {
                 ))}
               </div>
 
-              {/* Game Ratings */}
               <div className="mt-16 mb-24 flex flex-col md:flex-row justify-center items-center gap-10 px-4 opacity-70">
                 <div className="flex items-center gap-6">
                   <div className="h-14 w-14 rounded-full bg-black/30 flex items-center justify-center">
@@ -536,10 +581,9 @@ function App() {
                 </div>
               </div>
 
-              {/* Call to Action */}
               <div className="text-center">
                 <h2
-                  className="text-4xl md:text-5xl font-light mb-8 tracking-wide"
+                  className="text-4xl md:text-5xl font-light mb-6 md:mb-8 tracking-wide"
                   style={{
                     opacity: scrollY > 800 ? 1 : 0,
                     transform:
@@ -550,7 +594,7 @@ function App() {
                   Enter Project Eden
                 </h2>
                 <div
-                  className="flex flex-col md:flex-row items-center justify-center gap-5"
+                  className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 px-4 relative z-10"
                   style={{
                     opacity: scrollY > 850 ? 1 : 0,
                     transform:
@@ -559,172 +603,283 @@ function App() {
                   }}
                 >
                   <button
-                    className="px-8 py-4 rounded-lg tracking-widest uppercase text-sm transition-all duration-500 relative overflow-hidden group"
+                    className="w-full sm:w-auto px-6 py-4 rounded-lg tracking-widest uppercase text-sm transition-all duration-500 relative overflow-hidden group flex items-center justify-center"
                     style={{
                       background: isDark
-                        ? "rgba(37, 99, 235, 0.1)"
-                        : "rgba(21, 128, 61, 0.1)",
+                        ? "rgba(37, 99, 235, 0.15)"
+                        : "rgba(21, 128, 61, 0.15)",
                       borderColor: isDark
-                        ? "rgba(59, 130, 246, 0.3)"
-                        : "rgba(22, 101, 52, 0.3)",
+                        ? "rgba(59, 130, 246, 0.4)"
+                        : "rgba(22, 101, 52, 0.4)",
                       borderWidth: "1px",
                       color: isDark
                         ? "rgba(191, 219, 254, 1)"
                         : "rgba(20, 83, 45, 1)",
                       boxShadow: isDark
-                        ? "0 0 20px rgba(37, 99, 235, 0.1)"
-                        : "0 0 20px rgba(21, 128, 61, 0.1)",
+                        ? "0 4px 20px rgba(37, 99, 235, 0.15)"
+                        : "0 4px 20px rgba(21, 128, 61, 0.15)",
+                      minWidth: "180px",
                     }}
+                    onClick={openPuzzleModal}
                   >
-                    <span className="relative z-10">Start Game</span>
+                    <span className="relative z-10 flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5 12h14m-7-7 7 7-7 7"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      Start Game
+                    </span>
                     <div
                       className="absolute inset-0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
                       style={{
                         background: isDark
-                          ? "linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.4) 100%)"
-                          : "linear-gradient(90deg, rgba(21, 128, 61, 0.2) 0%, rgba(21, 128, 61, 0.4) 100%)",
+                          ? "linear-gradient(90deg, rgba(37, 99, 235, 0.3) 0%, rgba(37, 99, 235, 0.5) 100%)"
+                          : "linear-gradient(90deg, rgba(21, 128, 61, 0.3) 0%, rgba(21, 128, 61, 0.5) 100%)",
                       }}
                     ></div>
                   </button>
 
                   <button
-                    className="px-8 py-4 rounded-lg tracking-widest text-sm transition-all duration-500 relative overflow-hidden group bg-transparent"
+                    className="w-full sm:w-auto px-6 py-4 rounded-lg tracking-widest text-sm transition-all duration-500 relative overflow-hidden group flex items-center justify-center mt-3 sm:mt-0 backdrop-blur-sm"
                     style={{
+                      background: isDark
+                        ? "rgba(30, 58, 138, 0.1)"
+                        : "rgba(20, 83, 45, 0.05)",
+                      borderColor: isDark
+                        ? "rgba(59, 130, 246, 0.2)"
+                        : "rgba(20, 83, 45, 0.2)",
+                      borderWidth: "1px",
                       color: isDark
-                        ? "rgba(147, 197, 253, 0.8)"
-                        : "rgba(20, 83, 45, 0.8)",
+                        ? "rgba(147, 197, 253, 0.9)"
+                        : "rgba(20, 83, 45, 0.9)",
+                      minWidth: "180px",
                     }}
                   >
-                    <span className="relative z-10 border-b border-current pb-1">
+                    <span className="relative z-10 flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5 3l14 9-14 9V3z"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                       Watch Trailer
                     </span>
                   </button>
                 </div>
+
+                <div
+                  className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto px-4"
+                  style={{
+                    opacity: scrollY > 900 ? 1 : 0,
+                    transform:
+                      scrollY > 900 ? "translateY(0)" : "translateY(20px)",
+                    transition: "all 1s ease 0.4s",
+                  }}
+                >
+                  {[
+                    { label: "Immersive World", value: "8+" },
+                    { label: "Unique Characters", value: "56" },
+                    { label: "Hours of Gameplay", value: "100+" },
+                    { label: "Player Reviews", value: "★★★★★" },
+                  ].map((stat, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg py-3 px-2 backdrop-blur-sm"
+                      style={{
+                        background: isDark
+                          ? "rgba(15, 23, 42, 0.3)"
+                          : "rgba(255, 255, 255, 0.1)",
+                        borderColor: isDark
+                          ? "rgba(59, 130, 246, 0.15)"
+                          : "rgba(22, 101, 52, 0.15)",
+                        borderWidth: "1px",
+                      }}
+                    >
+                      <div
+                        className="text-sm opacity-70 mb-1"
+                        style={{
+                          color: isDark
+                            ? "rgb(186, 230, 253)"
+                            : "rgb(20, 83, 45)",
+                        }}
+                      >
+                        {stat.label}
+                      </div>
+                      <div
+                        className="font-semibold"
+                        style={{
+                          color: isDark
+                            ? "rgb(191, 219, 254)"
+                            : "rgb(20, 83, 45)",
+                        }}
+                      >
+                        {stat.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {showPlotTwist && (
+                <section className="relative min-h-screen flex items-center justify-center plot-twist-reveal">
+                  <div className="absolute inset-0 pointer-events-none">
+                    {[...Array(20)].map((_, i) => (
+                      <div
+                        key={`star-${i}`}
+                        className="absolute bg-blue-500/10"
+                        style={{
+                          left: `${Math.random() * 100}%`,
+                          top: `${Math.random() * 100}%`,
+                          width: `${Math.random() * 2 + 1}px`,
+                          height: `${Math.random() * 2 + 1}px`,
+                          boxShadow: "0 0 4px rgba(59, 130, 246, 0.5)",
+                          borderRadius: "50%",
+                          opacity: 0.6 + Math.random() * 0.4,
+                          animation: `twinkle ${
+                            2 + Math.random() * 3
+                          }s infinite alternate ease-in-out`,
+                          zIndex: 5,
+                        }}
+                      />
+                    ))}
+
+                    <div
+                      className="absolute inset-0 opacity-10"
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+                        `,
+                        backgroundSize: "30px 30px",
+                        zIndex: 6,
+                      }}
+                    />
+
+                    <div className="absolute inset-0 flex flex-wrap justify-around items-center p-20 z-10 pointer-events-none">
+                      {codeSnippets.map((snippet, i) => (
+                        <div
+                          key={`code-${i}`}
+                          className="font-mono text-xs md:text-sm p-2 rounded bg-black/20 backdrop-blur-sm border border-blue-500/20 mb-4 opacity-70 shadow-lg"
+                          style={{
+                            maxWidth: "300px",
+                            color: "rgba(191, 219, 254, 0.9)",
+                            transform: `rotate(${Math.random() * 2 - 1}deg)`,
+                            animation: `float-${i % 3} ${
+                              3 + i
+                            }s infinite ease-in-out`,
+                          }}
+                        >
+                          {snippet}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {showPlotTwist && (
+                    <div className="container mx-auto z-30 relative px-6">
+                      <div className="bg-black/50 backdrop-blur-md p-8 rounded-lg border border-blue-500/30 max-w-4xl mx-auto shadow-lg">
+                        <div className="flex items-center mb-6">
+                          <AlertTriangle
+                            className="text-blue-400 mr-3"
+                            size={32}
+                          />
+                          <h2 className="text-blue-300 text-3xl font-light tracking-wide uppercase">
+                            System Anomaly Detected
+                          </h2>
+                        </div>
+
+                        <div className="space-y-6 prose prose-invert max-w-none">
+                          <p className="text-xl md:text-2xl font-light mb-4 leading-relaxed">
+                            Empyrea was never just a realm—it's an experimental
+                            simulation. You're inside Project Eden, a tech-fest
+                            exhibit that merges AI, VR, and illusions. The
+                            system needs recalibration.
+                          </p>
+
+                          <div className="font-mono text-sm bg-black/30 p-4 rounded-lg border-l-2 border-blue-500/50 mb-6 text-blue-200/90">
+                            &gt; STATUS: SIMULATION_INTEGRITY_COMPROMISED
+                            <br />
+                            &gt; FACADE_SUBSYSTEM_NEEDS_RECALIBRATION
+                            <br />
+                            &gt; REQUESTING_USER_AUTHORIZATION_FOR_SYSTEM_REPAIR
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-12">
+                            <button
+                              className="w-full sm:w-auto px-6 py-3 bg-blue-900/40 border border-blue-400/50 text-blue-300 hover:bg-blue-800/50 transition-all duration-300 rounded-lg shadow-lg hover:shadow-blue-900/30 flex items-center space-x-2 group"
+                              onClick={openPuzzleModal}
+                            >
+                              <RefreshCw
+                                size={20}
+                                className="group-hover:rotate-180 transition-transform duration-700"
+                              />
+                              <span>Repair System</span>
+                            </button>
+
+                            <button className="w-full sm:w-auto mt-3 sm:mt-0 px-6 py-3 bg-purple-900/30 border border-purple-400/40 text-purple-300 hover:bg-purple-800/40 transition-all duration-300 rounded-lg shadow-lg hover:shadow-purple-900/30 flex items-center space-x-2">
+                              <Code size={20} />
+                              <span>View Source Code</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {showPuzzle && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div
+                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                    onClick={closePuzzleModal}
+                  ></div>
+
+                  <button
+                    onClick={closePuzzleModal}
+                    className="absolute top-4 right-4 md:top-6 md:right-6 z-[60] p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    aria-label="Close puzzle"
+                  >
+                    <X size={24} />
+                  </button>
+
+                  <div className="relative w-full max-w-6xl z-[55] overflow-hidden rounded-lg flex items-center justify-center h-[90vh]">
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center bg-black/80 w-full h-full text-white">
+                          <div className="flex flex-col items-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-400 mb-4"></div>
+                            <p className="text-blue-300">Loading puzzle...</p>
+                          </div>
+                        </div>
+                      }
+                    >
+                      <CorruptedSeedPuzzle onComplete={handlePuzzleComplete} />
+                    </Suspense>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
-
-        {/* Plot Twist Section */}
-        {showPlotTwist && (
-          <section className="relative min-h-screen flex items-center justify-center plot-twist-reveal">
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Modern UI Elements */}
-              {[...Array(20)].map((_, i) => (
-                <div
-                  key={`star-${i}`}
-                  className="absolute bg-blue-500/10"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    width: `${Math.random() * 2 + 1}px`,
-                    height: `${Math.random() * 2 + 1}px`,
-                    boxShadow: "0 0 4px rgba(59, 130, 246, 0.5)",
-                    borderRadius: "50%",
-                    opacity: 0.6 + Math.random() * 0.4,
-                    animation: `twinkle ${
-                      2 + Math.random() * 3
-                    }s infinite alternate ease-in-out`,
-                    zIndex: 5,
-                  }}
-                />
-              ))}
-
-              {/* Subtle grid lines */}
-              <div
-                className="absolute inset-0 opacity-10"
-                style={{
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-                  `,
-                  backgroundSize: "30px 30px",
-                  zIndex: 6,
-                }}
-              />
-
-              {/* Code snippets - cleaner presentation */}
-              <div className="absolute inset-0 flex flex-wrap justify-around items-center p-20 z-10 pointer-events-none">
-                {codeSnippets.map((snippet, i) => (
-                  <div
-                    key={`code-${i}`}
-                    className="font-mono text-xs md:text-sm p-2 rounded bg-black/20 backdrop-blur-sm border border-blue-500/20 mb-4 opacity-70 shadow-lg"
-                    style={{
-                      maxWidth: "300px",
-                      color: "rgba(191, 219, 254, 0.9)",
-                      transform: `rotate(${Math.random() * 2 - 1}deg)`,
-                      animation: `float-${i % 3} ${
-                        3 + i
-                      }s infinite ease-in-out`,
-                    }}
-                  >
-                    {snippet}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Reveal message */}
-            {showPlotTwist && (
-              <div className="container mx-auto z-30 relative px-6">
-                <div className="bg-black/50 backdrop-blur-md p-8 rounded-lg border border-blue-500/30 max-w-4xl mx-auto shadow-lg">
-                  <div className="flex items-center mb-6">
-                    <AlertTriangle className="text-blue-400 mr-3" size={32} />
-                    <h2 className="text-blue-300 text-3xl font-light tracking-wide uppercase">
-                      System Anomaly Detected
-                    </h2>
-                  </div>
-
-                  <div className="space-y-6 prose prose-invert max-w-none">
-                    <p className="text-xl md:text-2xl font-light mb-4 leading-relaxed">
-                      Empyrea was never just a realm—it's an experimental
-                      simulation. You're inside Project Eden, a tech-fest
-                      exhibit that merges AI, VR, and illusions. The system
-                      needs recalibration.
-                    </p>
-
-                    <div className="font-mono text-sm bg-black/30 p-4 rounded-lg border-l-2 border-blue-500/50 mb-6 text-blue-200/90">
-                      &gt; STATUS: SIMULATION_INTEGRITY_COMPROMISED
-                      <br />
-                      &gt; FACADE_SUBSYSTEM_NEEDS_RECALIBRATION
-                      <br />
-                      &gt; REQUESTING_USER_AUTHORIZATION_FOR_SYSTEM_REPAIR
-                    </div>
-
-                    <div className="flex items-center justify-center gap-8 mt-12">
-                      <button
-                        className="px-6 py-3 bg-blue-900/40 border border-blue-400/50 text-blue-300 hover:bg-blue-800/50 transition-all duration-300 rounded-lg shadow-lg hover:shadow-blue-900/30 flex items-center space-x-2 group"
-                        onClick={() => setShowPuzzle(true)}
-                      >
-                        <RefreshCw
-                          size={20}
-                          className="group-hover:rotate-180 transition-transform duration-700"
-                        />
-                        <span>Repair System</span>
-                      </button>
-
-                      <button className="px-6 py-3 bg-purple-900/30 border border-purple-400/40 text-purple-300 hover:bg-purple-800/40 transition-all duration-300 rounded-lg shadow-lg hover:shadow-purple-900/30 flex items-center space-x-2">
-                        <Code size={20} />
-                        <span>View Source Code</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Corrupted Seed Puzzle */}
-        {showPuzzle && (
-          <CorruptedSeedPuzzle
-            onComplete={() => {
-              setIsPuzzleComplete(true);
-              setShowPuzzle(false);
-              setIsGlitching(false);
-            }}
-          />
-        )}
       </div>
     </div>
   );
