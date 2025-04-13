@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Code,
+  Cpu, // Add this import
+  Binary, // Add this import
 } from "lucide-react";
 import CorruptedSeedPuzzle from "./CorruptedSeedPuzzle";
 
