@@ -1,0 +1,838 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Performance optimization - reduce animation complexity */
+@keyframes float-0 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(5px, -5px);
+  }
+}
+
+@keyframes float-1 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-8px, -8px);
+  }
+}
+
+@keyframes float-2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(3px, -10px);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Optimized glitch animations - using transform/opacity for GPU acceleration */
+@keyframes glitch-movement {
+  0% {
+    clip-path: inset(40% 0 61% 0);
+    transform: translate(-10px, 5px);
+  }
+  20% {
+    clip-path: inset(92% 0 1% 0);
+    transform: translate(10px, -5px);
+  }
+  40% {
+    clip-path: inset(43% 0 1% 0);
+    transform: translate(-5px, 2px);
+  }
+  60% {
+    clip-path: inset(25% 0 58% 0);
+    transform: translate(5px, -2px);
+  }
+  80% {
+    clip-path: inset(54% 0 7% 0);
+    transform: translate(-3px, 7px);
+  }
+  100% {
+    clip-path: inset(58% 0 43% 0);
+    transform: translate(3px, -7px);
+  }
+}
+
+@keyframes glitch-text {
+  0% {
+    text-shadow: -2px 0 #00fffc, 2px 0 #fc00ff;
+    transform: translate(2px, -2px);
+  }
+  25% {
+    text-shadow: 2px 0 #00fffc, -2px 0 #fc00ff;
+    transform: translate(-2px, 2px);
+  }
+  50% {
+    text-shadow: -1px 0 #fc00ff, 1px 0 #00fffc;
+    transform: skewX(2deg);
+  }
+  75% {
+    text-shadow: 1px 0 #fc00ff, -1px 0 #00fffc;
+    transform: skewX(-2deg);
+  }
+  100% {
+    text-shadow: -2px 0 #00fffc, 2px 0 #fc00ff;
+    transform: translate(2px, -2px);
+  }
+}
+
+/* Optimized venom animations - using simpler properties */
+@keyframes venom-spread {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at var(--x, 50%) var(--y, 50%));
+  }
+  100% {
+    opacity: 0.8;
+    clip-path: circle(150% at var(--x, 50%) var(--y, 50%));
+  }
+}
+
+@keyframes venom-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.3;
+  }
+}
+
+/* Optimized edge effects */
+@keyframes venom-edges {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(255, 0, 255, 0.4));
+  }
+}
+
+/* Reduced animation complexity */
+@keyframes critical-spread {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Simplified shake animation */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Reduced animation complexity */
+@keyframes glowing {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+  }
+}
+
+/* Simplified success animation */
+@keyframes success-wave {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Simplified critical shake - reduced iterations */
+@keyframes critical-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-10px);
+  }
+  40% {
+    transform: translateX(10px);
+  }
+  60% {
+    transform: translateX(-10px);
+  }
+  80% {
+    transform: translateX(10px);
+  }
+}
+
+@keyframes puzzle-complete-flash {
+  0%,
+  100% {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  50% {
+    background-color: rgba(74, 222, 128, 0.05);
+  }
+}
+
+/* Optimized venom spread */
+@keyframes error-venom-spread {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at var(--x, 50%) var(--y, 50%));
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    clip-path: circle(100% at var(--x, 50%) var(--y, 50%));
+  }
+}
+
+/* Optimized circuit flow animation */
+@keyframes circuit-flow {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Circuit path with will-change property */
+.circuit-path {
+  position: absolute;
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 255, 255, 0.5),
+    rgba(255, 0, 255, 0.5),
+    transparent
+  );
+  animation: circuit-flow 3s infinite;
+  will-change: transform, opacity;
+}
+
+.critical-circuit-path {
+  position: absolute;
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 0, 0, 0.5),
+    rgba(255, 50, 50, 0.8),
+    transparent
+  );
+  animation: circuit-flow 1.5s infinite;
+  will-change: transform, opacity;
+}
+
+/* Animation classes with will-change */
+.animate-float-0 {
+  animation: float-0 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-float-1 {
+  animation: float-1 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-float-2 {
+  animation: float-2 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+  will-change: opacity;
+}
+
+/* Optimized glitch effects */
+.glitching::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    125deg,
+    rgba(0, 0, 50, 0.2),
+    rgba(255, 0, 255, 0.05),
+    rgba(0, 255, 255, 0.05),
+    rgba(0, 0, 50, 0.2)
+  );
+  z-index: 5;
+  pointer-events: none;
+  animation: venom-spread 2s forwards ease-out;
+  --x: 50%;
+  --y: 90%;
+  will-change: opacity, clip-path;
+}
+
+.glitching::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 255, 0.03) 3px,
+    rgba(255, 0, 255, 0.03) 4px
+  );
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  animation: venom-pulse 4s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.glitching img,
+.glitching video,
+.glitching svg {
+  animation: venom-edges 4s ease-in-out infinite;
+  will-change: filter;
+}
+
+.glitching h1,
+.glitching h2,
+.glitching h3,
+.glitching .text-4xl,
+.glitching .text-6xl {
+  animation: glitch-text 4s infinite;
+  position: relative;
+  will-change: transform, text-shadow;
+}
+
+.glitching span,
+.glitching p {
+  position: relative;
+}
+
+.glitching span::after,
+.glitching p::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 2px;
+  text-shadow: -1px 0 #ff00ff;
+  top: 0;
+  color: currentColor;
+  overflow: hidden;
+  clip: rect(0, 900px, 0, 0);
+  animation: glitch-movement 5s infinite linear alternate-reverse;
+  will-change: clip, transform;
+}
+
+/* Optimized critical glitch - reduced complexity */
+.critical-glitch::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 0, 0, 0.2),
+    transparent 70%
+  );
+  z-index: 100;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  animation: critical-spread 0.8s ease-in-out;
+  will-change: transform, filter;
+}
+
+.font-glitch {
+  position: relative;
+  animation: glitch-text 2s infinite;
+  letter-spacing: 0.2em;
+  will-change: transform, text-shadow;
+}
+
+.typewriter-text {
+  overflow: hidden;
+  border-right: 3px solid rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: 0.15em;
+  animation: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+  max-width: fit-content;
+  will-change: width;
+}
+
+.blinking-text {
+  animation: blink 1s infinite;
+  will-change: opacity;
+}
+
+.glowing-box {
+  animation: glowing 3s infinite;
+  will-change: box-shadow;
+}
+
+.animate-success {
+  animation: success-wave 2s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* Optimized critical glitch effect */
+.critical-glitch * {
+  animation: critical-shake 0.6s ease-in-out !important;
+  position: relative;
+  will-change: transform;
+}
+
+.critical-glitch *:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 0, 0, 0.1);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.puzzle-complete::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    rgba(74, 222, 128, 0.2),
+    transparent 70%
+  );
+  z-index: 5;
+  pointer-events: none;
+  animation: venom-spread 1s forwards ease-out;
+  --x: 50%;
+  --y: 50%;
+  will-change: opacity, clip-path;
+}
+
+.error-venom::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    rgba(255, 0, 0, 0.3),
+    transparent 70%
+  );
+  z-index: 100;
+  pointer-events: none;
+  animation: error-venom-spread 0.8s forwards ease-out;
+  will-change: opacity, clip-path;
+}
+
+.error-venom::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    transparent 20%,
+    rgba(255, 0, 0, 0.1) 30%,
+    transparent 70%
+  );
+  z-index: 101;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  animation: error-venom-spread 0.8s forwards ease-out;
+  will-change: opacity, clip-path;
+}
+
+/* Animation Delays */
+.animate-delay-150 {
+  animation-delay: 150ms !important;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms !important;
+}
+
+/* Smooth Scrolling with reduced impact */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+/* Optimized theme transition - only transition necessary properties */
+.theme-transition {
+  transition-property: background-color, color;
+  transition-duration: 700ms;
+  transition-timing-function: ease-out;
+}
+
+/* Venom Dark Theme Transition */
+@keyframes venom-dark-spread {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at var(--venom-x, 50%) var(--venom-y, 50%));
+  }
+  100% {
+    opacity: 0.5;
+    clip-path: circle(150% at var(--venom-x, 50%) var(--venom-y, 50%));
+  }
+}
+
+/* Full venom takeover animation */
+@keyframes venom-takeover-spread {
+  0% {
+    opacity: 0.2;
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  }
+  20% {
+    clip-path: polygon(0 0, 100% 0, 100% 20%, 0 10%);
+  }
+  40% {
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 30%);
+  }
+  60% {
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 0 60%);
+  }
+  80% {
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 80%);
+  }
+  100% {
+    opacity: 0.8;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+@keyframes venom-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+}
+
+@keyframes venom-tendrils {
+  0% {
+    opacity: 0;
+    height: 0;
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.3;
+    height: 120%;
+  }
+}
+
+.venom-dark::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    125deg,
+    rgba(10, 10, 40, 0.6),
+    rgba(80, 0, 100, 0.3),
+    rgba(0, 50, 100, 0.4)
+  );
+  z-index: 4;
+  pointer-events: none;
+  animation: venom-dark-spread 1.5s forwards ease-out;
+  will-change: opacity, clip-path;
+  transition: opacity 0.7s ease;
+}
+
+.venom-dark::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+      90deg,
+      rgba(0, 20, 80, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(0deg, rgba(0, 20, 80, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  animation: venom-ripple 8s infinite ease-in-out;
+  will-change: opacity, transform;
+}
+
+/* Venom Takeover - replaces glitching */
+.venom-takeover::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    170deg,
+    rgba(5, 5, 30, 0.8),
+    rgba(40, 0, 60, 0.7),
+    rgba(0, 20, 40, 0.8)
+  );
+  z-index: 6;
+  pointer-events: none;
+  animation: venom-takeover-spread 2s forwards ease-out;
+  will-change: opacity, clip-path;
+}
+
+.venom-takeover::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 5px,
+    rgba(0, 180, 255, 0.03) 5px,
+    rgba(120, 0, 255, 0.04) 10px
+  );
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.4;
+  animation: venom-pulse 6s ease-in-out infinite alternate;
+  will-change: opacity, transform;
+}
+
+/* Create venom tendrils that grow from bottom */
+.venom-takeover .venom-tendril {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to top,
+    rgba(100, 0, 180, 0.7),
+    rgba(0, 180, 255, 0.3),
+    transparent
+  );
+  z-index: 7;
+  pointer-events: none;
+  transform-origin: bottom center;
+  animation: venom-tendrils 2s forwards ease-out;
+  will-change: opacity, height;
+}
+
+/* Venom error effect */
+@keyframes venom-error-pulse {
+  0% {
+    opacity: 0.4;
+    background-color: rgba(100, 0, 20, 0.3);
+  }
+  50% {
+    opacity: 0.7;
+    background-color: rgba(150, 0, 30, 0.4);
+  }
+  100% {
+    opacity: 0.4;
+    background-color: rgba(100, 0, 20, 0.3);
+  }
+}
+
+.venom-error::before {
+  background: linear-gradient(
+    170deg,
+    rgba(40, 0, 0, 0.7),
+    rgba(80, 0, 20, 0.6),
+    rgba(20, 0, 40, 0.7)
+  );
+  animation: venom-error-pulse 0.6s infinite !important;
+}
+
+.venom-error::after {
+  opacity: 0.8;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 5px,
+    rgba(255, 0, 0, 0.05) 5px,
+    rgba(100, 0, 0, 0.08) 10px
+  );
+}
+
+/* Smooth Dark Theme */
+.smooth-dark::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 35, 0.8),
+    rgba(20, 20, 60, 0.7)
+  );
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 0.7s ease;
+}
+
+.smooth-dark::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(
+      circle at 20% 30%,
+      rgba(30, 90, 120, 0.2) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 60%,
+      rgba(60, 20, 90, 0.15) 0%,
+      transparent 50%
+    );
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.8;
+  transition: opacity 0.7s ease;
+}
+
+/* Revised plot twist section - cleaner, more modern */
+.plot-twist-reveal {
+  position: relative;
+  overflow: hidden;
+}
+
+.plot-twist-reveal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    170deg,
+    rgba(15, 15, 35, 0.7),
+    rgba(25, 10, 50, 0.7)
+  );
+  z-index: 1;
+  pointer-events: none;
+}
